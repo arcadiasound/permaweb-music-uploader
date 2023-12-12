@@ -1,0 +1,1 @@
+Permaweb Vite template ⚡
