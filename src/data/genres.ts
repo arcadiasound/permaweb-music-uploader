@@ -1,0 +1,18 @@
+export const genres = [
+  "none",
+  "acoustic",
+  "afrobeat",
+  "alternative",
+  "ambient",
+  "classical",
+  "country",
+  "dance/edm",
+  "electronic",
+  "hip-hop/rap",
+  "jazz",
+  "pop",
+  "punk",
+  "r&b/soul",
+  "reggae",
+  "rock",
+] as const;
