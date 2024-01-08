@@ -3,11 +3,7 @@ import { WarpFactory } from "warp-contracts";
 import { DeployPlugin } from "warp-contracts-plugin-deploy";
 import BigNumber from "bignumber.js";
 
-export const arweave = Arweave.init({
-  host: "ar-io.dev",
-  port: 443,
-  protocol: "https",
-});
+export const arweave = Arweave.init({});
 
 export const getArBalance = async (address: string) => {
   const winstonBalance = await arweave.wallets.getBalance(address);
