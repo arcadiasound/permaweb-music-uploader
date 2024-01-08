@@ -77,7 +77,7 @@ export const ConnectWallet = (props: ConnectWalletProps) => {
         childButton
       ) : (
         <>
-          {user ? (
+          {walletAddress ? (
             // <>
             //   {type && type === 'icon' ? (
             //     <IconButton

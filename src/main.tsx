@@ -46,11 +46,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <QueryClientProvider client={queryClient}>
       <TurboProvider>
         <IrysProvider>
-          <ConnectProvider
-            webWallet={webWallet}
-            includeProfile
-            detectWalletSwitch
-          >
+          <ConnectProvider webWallet={webWallet} detectWalletSwitch>
             <Toaster richColors position="bottom-right" />
             <App />
           </ConnectProvider>
