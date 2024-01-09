@@ -5,9 +5,11 @@ type GetIrys = Pick<IrysOpts, "init">;
 
 export const getIrys = async (irysOptions?: GetIrys) => {
   const irys = new WebIrys({
-    token: irysOptions?.init?.token || "arweave",
+    token: "arweave",
+    // token: irysOptions?.init?.token || "arweave",
     wallet: { provider: irysOptions?.init?.provider || window.arweaveWallet },
-    url: `https://${irysOptions?.init?.node || "node2"}.irys.xyz`,
+    url: "https://up.arweave.net",
+    // url: `https://${irysOptions?.init?.node || "node2"}.irys.xyz`,
   });
 
   await irys.ready();
