@@ -5,7 +5,7 @@ import { Box } from "@/ui/Box";
 import { styled } from "@/stitches.config";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/Tabs";
 import { Label } from "@/ui/Label";
-import { RxPencil2, RxPlus, RxTrash } from "react-icons/rx";
+import { RxDragHandleDots2, RxPencil2, RxPlus, RxTrash } from "react-icons/rx";
 import {
   BsFillExclamationCircleFill,
   BsPauseFill,
@@ -24,7 +24,7 @@ import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DetailsDialog } from "./DetailsDialog";
 import { Image } from "@/ui/Image";
-import { upload } from "@/lib/upload";
+import { upload } from "@/lib/upload/";
 import { toast } from "sonner";
 import { ImageDropzone } from "./components/Dropzone";
 import { FormSelect } from "./components/FormSelect";
@@ -42,6 +42,7 @@ import { UploadDialog } from "./UploadDialog";
 import { AppHeader } from "../layout/AppHeader";
 import { useLocation } from "react-router-dom";
 import { FormHelperAccordion } from "./components/FormHelperAccordion";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 const AudioDropContainer = styled("div", {
   display: "flex",
@@ -150,10 +151,17 @@ export const Upload = () => {
   } = form;
   const { errors } = formState;
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, move, remove } = useFieldArray({
     control: form.control,
     name: "tracklist",
   });
+
+  const handleDrag = ({ source, destination }) => {
+    console.log("yello");
+    if (destination) {
+      move(source.index, destination.index);
+    }
+  };
 
   const handlePrevious = () => {
     if (currentTab === "tracklist") {
@@ -659,123 +667,183 @@ export const Upload = () => {
                       align="center"
                       gap="10"
                     >
-                      <Flex css={{ width: "100%" }} direction="column">
-                        {fields.map((track, index) => (
-                          <Flex
-                            key={track.id}
-                            css={{
-                              position: "relative",
-                              width: "100%",
-                              py: "$5",
-                              pr: "$10",
-                              pl: "$7",
-                              // br: "$3",
-
-                              "&:hover": {
-                                backgroundColor: "$slate2",
-                              },
-                            }}
-                            justify="between"
-                            align="center"
-                          >
-                            <Flex align="center" gap="5">
-                              <IconButton
-                                type="button"
-                                aria-label="Play/pause file"
-                                variant="ghost"
-                                size="3"
-                                onClick={() => handlePlayPause(index)}
+                      <DragDropContext onDragEnd={handleDrag}>
+                        <Flex
+                          as="ul"
+                          css={{ width: "100%", listStyleType: "none" }}
+                          direction="column"
+                        >
+                          <Droppable droppableId="items">
+                            {(provided, snapshot) => (
+                              <div
+                                {...provided.droppableProps}
+                                ref={provided.innerRef}
                               >
-                                {currentlyPlayingIndex === index ? (
-                                  <BsPauseFill />
-                                ) : (
-                                  <BsPlayFill />
-                                )}
-                              </IconButton>
-                              <audio
-                                ref={(el) => (audioRef.current[index] = el)}
-                                onEnded={() => setCurrentlyPlayingIndex(null)}
-                                src={track.url}
-                              ></audio>
-                              <Image
-                                src={
-                                  form.getValues("tracklist")[index].metadata
-                                    .artwork?.url
-                                }
-                                css={{
-                                  width: 40,
-                                  height: 40,
-                                }}
-                              />
-                              <Typography>{track.metadata.title}</Typography>
-                            </Flex>
-                            <Flex align="center" gap="1">
-                              <IconButton
-                                aria-label="Edit track details"
-                                type="button"
-                                onClick={() => handleShowDetailsDialog(index)}
-                                variant="ghost"
-                                size="2"
-                              >
-                                <RxPencil2 />
-                              </IconButton>
-                              <IconButton
-                                aria-label="Delete track from release"
-                                type="button"
-                                css={{
-                                  color: "$red10",
+                                {fields.map((track, index) => {
+                                  return (
+                                    <Draggable
+                                      key={`item[${index}]`}
+                                      draggableId={`item-${index}`}
+                                      index={index}
+                                    >
+                                      {(provided, snapshot) => (
+                                        <Flex
+                                          key={track.id}
+                                          ref={provided.innerRef}
+                                          {...provided.draggableProps}
+                                          as="li"
+                                          css={{
+                                            position: "relative",
+                                            width: "100%",
+                                            py: "$5",
+                                            pr: "$10",
+                                            pl: "$10",
+                                            // br: "$3",
 
-                                  "&:hover": {
-                                    backgroundColor: "$red4",
-                                    color: "$red11",
-                                  },
+                                            "&:hover": {
+                                              backgroundColor: "$slate2",
+                                            },
+                                          }}
+                                          justify="between"
+                                          align="center"
+                                        >
+                                          <Box
+                                            css={{
+                                              p: "$2",
+                                              position: "absolute",
+                                              left: "$2",
+                                              display: "grid",
+                                              placeItems: "center",
 
-                                  "&:active": {
-                                    backgroundColor: "$red5",
-                                    // color: "$red11",
-                                  },
-                                }}
-                                onClick={() => remove(index)}
-                                variant="ghost"
-                                size="2"
-                              >
-                                <RxTrash />
-                              </IconButton>
+                                              "&:hover": {
+                                                color: "$slate12",
+                                              },
+                                            }}
+                                            {...provided.dragHandleProps}
+                                          >
+                                            <RxDragHandleDots2 />
+                                          </Box>
+                                          <Flex align="center" gap="5">
+                                            <IconButton
+                                              type="button"
+                                              aria-label="Play/pause file"
+                                              variant="ghost"
+                                              size="3"
+                                              onClick={() =>
+                                                handlePlayPause(index)
+                                              }
+                                            >
+                                              {currentlyPlayingIndex ===
+                                              index ? (
+                                                <BsPauseFill />
+                                              ) : (
+                                                <BsPlayFill />
+                                              )}
+                                            </IconButton>
+                                            <audio
+                                              ref={(el) =>
+                                                (audioRef.current[index] = el)
+                                              }
+                                              onEnded={() =>
+                                                setCurrentlyPlayingIndex(null)
+                                              }
+                                              src={track.url}
+                                            ></audio>
+                                            <Image
+                                              src={
+                                                form.getValues("tracklist")[
+                                                  index
+                                                ].metadata.artwork?.url
+                                              }
+                                              css={{
+                                                width: 40,
+                                                height: 40,
+                                              }}
+                                            />
+                                            <Typography>
+                                              {track.metadata.title}
+                                            </Typography>
+                                          </Flex>
+                                          <Flex align="center" gap="1">
+                                            <IconButton
+                                              aria-label="Edit track details"
+                                              type="button"
+                                              onClick={() =>
+                                                handleShowDetailsDialog(index)
+                                              }
+                                              variant="ghost"
+                                              size="2"
+                                            >
+                                              <RxPencil2 />
+                                            </IconButton>
+                                            <IconButton
+                                              aria-label="Delete track from release"
+                                              type="button"
+                                              css={{
+                                                color: "$red10",
 
-                              {errors.tracklist &&
-                                errors.tracklist[index] &&
-                                !trackValid(index) && (
-                                  <IconButton
-                                    variant="transparent"
-                                    as="span"
-                                    css={{
-                                      color: "$red10",
-                                      position: "absolute",
-                                      right: "$2",
+                                                "&:hover": {
+                                                  backgroundColor: "$red4",
+                                                  color: "$red11",
+                                                },
 
-                                      "&:hover": {
-                                        color: "$red10",
-                                      },
-                                    }}
-                                  >
-                                    <BsFillExclamationCircleFill aria-label="Track contains errors" />
-                                  </IconButton>
-                                )}
-                            </Flex>
+                                                "&:active": {
+                                                  backgroundColor: "$red5",
+                                                  // color: "$red11",
+                                                },
+                                              }}
+                                              onClick={() => remove(index)}
+                                              variant="ghost"
+                                              size="2"
+                                            >
+                                              <RxTrash />
+                                            </IconButton>
 
-                            <DetailsDialog
-                              track={track}
-                              form={form}
-                              index={index}
-                              open={
-                                showDetailsDialog.open &&
-                                index === showDetailsDialog.index
-                              }
-                              onClose={() => handleCancelDetailsDialog(index)}
-                            />
-                          </Flex>
-                        ))}
-                      </Flex>
+                                            {errors.tracklist &&
+                                              errors.tracklist[index] &&
+                                              !trackValid(index) && (
+                                                <IconButton
+                                                  variant="transparent"
+                                                  as="span"
+                                                  css={{
+                                                    color: "$red10",
+                                                    position: "absolute",
+                                                    right: "$2",
+
+                                                    "&:hover": {
+                                                      color: "$red10",
+                                                    },
+                                                  }}
+                                                >
+                                                  <BsFillExclamationCircleFill aria-label="Track contains errors" />
+                                                </IconButton>
+                                              )}
+                                          </Flex>
+
+                                          <DetailsDialog
+                                            track={track}
+                                            form={form}
+                                            index={index}
+                                            open={
+                                              showDetailsDialog.open &&
+                                              index === showDetailsDialog.index
+                                            }
+                                            onClose={() =>
+                                              handleCancelDetailsDialog(index)
+                                            }
+                                          />
+                                        </Flex>
+                                      )}
+                                    </Draggable>
+                                  );
+                                })}
+
+                                {provided.placeholder}
+                              </div>
+                            )}
+                          </Droppable>
+                        </Flex>
+                      </DragDropContext>
                       <AudioDropContainer {...audio.getRootProps()}>
                         <input {...audio.getInputProps()} />
                         <Flex gap="5" align="center">
@@ -1184,7 +1252,7 @@ export const Upload = () => {
                 <>
                   {walletAddress ? (
                     <Flex gap="3">
-                      <Button
+                      {/* <Button
                         disabled={
                           form.formState.isSubmitting
                           // || form.formState.isSubmitSuccessful
@@ -1194,7 +1262,7 @@ export const Upload = () => {
                         onClick={handleShowUploadDialog}
                       >
                         Choose payment method
-                      </Button>
+                      </Button> */}
                       <Button
                         disabled={
                           form.formState.isSubmitting
