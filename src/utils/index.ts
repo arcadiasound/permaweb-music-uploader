@@ -156,3 +156,13 @@ export const floorToFixed = (number: number | string, decimals: number) => {
     factor
   );
 };
+
+export const isDev = () => {
+  if (typeof window === "undefined") return;
+
+  if (window.location.hostname === "localhost") {
+    return true;
+  } else {
+    return false;
+  }
+};
