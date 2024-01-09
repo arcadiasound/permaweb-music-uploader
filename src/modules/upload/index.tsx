@@ -408,6 +408,7 @@ export const Upload = () => {
   const { data: profile, isError } = useQuery({
     queryKey: [`profile-${walletAddress}`],
     enabled: !!walletAddress,
+    refetchOnWindowFocus: false,
     queryFn: () => {
       if (!walletAddress) {
         return;

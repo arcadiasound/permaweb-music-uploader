@@ -63,6 +63,7 @@ export const HeaderDropdown = ({ walletAddress }: HeaderDropdownProps) => {
 
   const { data: profile, isError } = useQuery({
     queryKey: [`profile-${walletAddress}`],
+    refetchOnWindowFocus: false,
     queryFn: () => {
       if (!walletAddress) {
         throw new Error("No profile has been found");
