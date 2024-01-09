@@ -38,7 +38,7 @@ const queryClient = new QueryClient();
 globalStyles();
 
 const webWallet = new ArweaveWebWallet({
-  name: "Radar",
+  name: "Permaweb Music Uploader",
 });
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(

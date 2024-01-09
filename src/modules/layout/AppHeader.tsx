@@ -48,7 +48,7 @@ export const AppHeader = () => {
               arconnect: true,
               arweaveApp: false,
             }}
-            appName="Radar"
+            appName="Permaweb Music Uploader"
           >
             <Button
               css={{
