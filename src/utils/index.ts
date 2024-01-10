@@ -166,3 +166,26 @@ export const isDev = () => {
     return false;
   }
 };
+
+export function convertFileToUint8Array(file: File): Promise<Uint8Array> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      // Ensure that reader.result is an ArrayBuffer
+      if (reader.result instanceof ArrayBuffer) {
+        const arrayBuffer = reader.result;
+        const uint8Array = new Uint8Array(arrayBuffer);
+        resolve(uint8Array);
+      } else {
+        reject(new Error("File read did not result in an ArrayBuffer"));
+      }
+    };
+
+    reader.onerror = () => {
+      reject(new Error("Error reading file"));
+    };
+
+    reader.readAsArrayBuffer(file);
+  });
+}
