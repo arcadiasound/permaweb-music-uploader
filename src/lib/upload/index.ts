@@ -20,10 +20,6 @@ export const upload = async (
       throw new Error("No wallet connected.");
     }
 
-    // if (data.uploadStatus === 'cancelled') {
-
-    // }
-
     const isCollection = data.tracklist.length > 1;
 
     let collectionCode = "";
@@ -180,6 +176,7 @@ const uploadTracks = async (
       tags = tags.concat({ name: "Title", value: track.metadata.title });
       tags = tags.concat({ name: "Thumbnail", value: trackArtworkId });
       tags = tags.concat({ name: "Topic:genre", value: track.metadata.genre });
+      tags = tags.concat({ name: "Type", value: "audio" });
 
       if (track.metadata.description) {
         if (track.metadata.description.length <= 300) {
@@ -188,6 +185,12 @@ const uploadTracks = async (
             value: track.metadata.description,
           });
         }
+      } else {
+        tags = tags.concat({
+          name: "Description",
+          // update this to check for artist name first, then for creator address once we add these
+          value: `${track.metadata.title} by ${address}`,
+        });
       }
 
       if (data.topics) {
@@ -452,8 +455,16 @@ const uploadCollection = async (
       },
     ];
 
-    if (data.description.length <= 300) {
-      tags.push({ name: "Description", value: data.description });
+    if (data.description) {
+      if (data.description.length <= 300) {
+        tags.push({ name: "Description", value: data.description });
+      }
+    } else {
+      tags.push({
+        name: "Description",
+        // update this to check for artist name first, then for creator address once we add these
+        value: `${data.title} by ${address}`,
+      });
     }
 
     const initState = JSON.stringify({

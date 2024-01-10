@@ -136,6 +136,7 @@ export const Upload = () => {
         url: undefined,
       },
       uploadProvider: "irys",
+      uploadStatus: "idle",
     },
   });
 
@@ -369,11 +370,14 @@ export const Upload = () => {
 
   const onSubmit = async (data: UploadSchema) => {
     console.log(data);
+    form.setValue(`uploadStatus`, "uploading");
     try {
       await upload(data, walletAddress, form, irysOpts);
+      form.setValue(`uploadStatus`, "success");
       toast.success("Tracks successfully uploaded!");
     } catch (error) {
       console.error(error);
+      form.setValue(`uploadStatus`, "failed");
       toast.error("Upload error. Please try again.");
     }
   };
@@ -1253,6 +1257,19 @@ export const Upload = () => {
                 <>
                   {walletAddress ? (
                     <Flex gap="3">
+                      {formState.isSubmitting &&
+                        form.watch("uploadStatus") === "uploading" && (
+                          <Button
+                            onClick={() =>
+                              form.setValue("uploadStatus", "cancelled")
+                            }
+                            type="button"
+                            variant="transparent"
+                            colorScheme="danger"
+                          >
+                            Cancel Upload
+                          </Button>
+                        )}
                       {/* <Button
                         disabled={
                           form.formState.isSubmitting
@@ -1266,12 +1283,13 @@ export const Upload = () => {
                       </Button> */}
                       <Button
                         disabled={
-                          form.formState.isSubmitting
-                          // || form.formState.isSubmitSuccessful
+                          form.formState.isSubmitting &&
+                          form.watch("uploadStatus") === "uploading"
                         }
                         variant="solid"
                       >
-                        {form.formState.isSubmitting
+                        {form.formState.isSubmitting &&
+                        form.watch("uploadStatus") === "uploading"
                           ? "Submitting..."
                           : "Submit release"}
                       </Button>

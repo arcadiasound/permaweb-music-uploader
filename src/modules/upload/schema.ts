@@ -84,4 +84,7 @@ export const uploadSchema = z.object({
   license: licenseSchema,
   tokenQuantity: z.coerce.number().min(1).max(100),
   uploadProvider: z.enum(["irys", "turbo"] as const),
+  uploadStatus: z
+    .enum(["idle", "uploading", "success", "failed", "paused", "cancelled"])
+    .default("idle"),
 });
