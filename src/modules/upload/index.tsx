@@ -504,12 +504,12 @@ export const Upload = () => {
                           {...register("description")}
                         />
                         {errors.description &&
-                        reactiveDescription.length > 300 ? (
+                        reactiveDescription.length > 3000 ? (
                           <FormHelperError>
                             {errors.description.message}
                           </FormHelperError>
                         ) : (
-                          <FormHelperText>Max. 300 characters</FormHelperText>
+                          <FormHelperText>Max. 1000 characters</FormHelperText>
                         )}
                       </FormRow>
                       <FormRow>
@@ -1081,7 +1081,7 @@ export const Upload = () => {
                           p: "$5",
                           flex: 1,
                         }}
-                        gap="20"
+                        gap="10"
                         align="center"
                         justify="between"
                       >
@@ -1095,7 +1095,14 @@ export const Upload = () => {
                             <Typography size="1">
                               {isAlbum ? "Album" : "Single"}
                             </Typography>
-                            <Typography size="6" weight="5" contrast="hi">
+                            <Typography
+                              title={getValues("title")}
+                              css={{ maxWidth: "24ch" }}
+                              ellipsis="single"
+                              size="6"
+                              weight="5"
+                              contrast="hi"
+                            >
                               {getValues("title")}
                             </Typography>
                           </Box>
@@ -1174,7 +1181,8 @@ export const Upload = () => {
                                     >
                                       {topic.replace(" ", "")}
                                     </Typography>
-                                  ))}
+                                  ))
+                                  .slice(0, 6)}
                               </Flex>
                             ) : (
                               <Typography size="2">-</Typography>
@@ -1281,18 +1289,24 @@ export const Upload = () => {
                       >
                         Choose payment method
                       </Button> */}
-                      <Button
-                        disabled={
-                          form.formState.isSubmitting &&
-                          form.watch("uploadStatus") === "uploading"
-                        }
-                        variant="solid"
-                      >
-                        {form.formState.isSubmitting &&
-                        form.watch("uploadStatus") === "uploading"
-                          ? "Submitting..."
-                          : "Submit release"}
-                      </Button>
+                      {!form.formState.isSubmitSuccessful && (
+                        <Button
+                          disabled={form.watch("uploadStatus") === "uploading"}
+                          variant="solid"
+                        >
+                          {form.watch("uploadStatus") === "uploading"
+                            ? "Submitting..."
+                            : "Submit release"}
+                        </Button>
+                      )}
+                      {form.formState.isSubmitSuccessful && (
+                        <Typography css={{ color: "$slate12" }}>
+                          {form.getValues("tracklist").length > 1
+                            ? "Album"
+                            : "Track"}{" "}
+                          uploaded successfully!
+                        </Typography>
+                      )}
                     </Flex>
                   ) : (
                     <Button

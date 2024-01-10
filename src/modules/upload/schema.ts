@@ -39,7 +39,7 @@ const trackMetadataSchema = z.object({
     .default(""),
   description: z
     .string()
-    .max(1000, "Description must contain less than 300 characters")
+    .max(3000, "Description must contain less than 3000 characters")
     .optional()
     .default(""),
   genre: z.enum(genres).default("none"),
@@ -72,7 +72,7 @@ export const uploadSchema = z.object({
     .default(""),
   description: z
     .string()
-    .max(1000, "Description must contain less than 300 characters")
+    .max(3000, "Description must contain less than 3000 characters")
     .optional()
     .default(""),
   genre: z.enum(genres).default("none"),
