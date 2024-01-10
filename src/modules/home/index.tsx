@@ -28,7 +28,14 @@ export const Home = () => {
         <div className={styles.center}>
           <h1 className={styles.heading}>Make your music live forever</h1>
         </div>
-        {!walletAddress ? (
+        <LinkButton
+          to={{
+            pathname: "/upload",
+          }}
+        >
+          Create a new release
+        </LinkButton>
+        {/* {!walletAddress ? (
           <ConnectWallet
             permissions={[
               "ACCESS_ADDRESS",
@@ -63,7 +70,7 @@ export const Home = () => {
           >
             Create a new release
           </LinkButton>
-        )}
+        )} */}
       </main>
     </>
   );
