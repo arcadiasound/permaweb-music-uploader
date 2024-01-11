@@ -509,7 +509,7 @@ export const Upload = () => {
                             {errors.description.message}
                           </FormHelperError>
                         ) : (
-                          <FormHelperText>Max. 1000 characters</FormHelperText>
+                          <FormHelperText>Max. 3000 characters</FormHelperText>
                         )}
                       </FormRow>
                       <FormRow>
@@ -675,7 +675,13 @@ export const Upload = () => {
                       <DragDropContext onDragEnd={handleDrag}>
                         <Flex
                           as="ul"
-                          css={{ width: "100%", listStyleType: "none" }}
+                          css={{
+                            width: "100%",
+                            listStyleType: "none",
+                            marginBlockEnd: 0,
+                            marginBlockStart: 0,
+                            paddingInlineStart: 0,
+                          }}
                           direction="column"
                         >
                           <Droppable droppableId="items">
@@ -1188,7 +1194,10 @@ export const Upload = () => {
                               <Typography size="2">-</Typography>
                             )}
                           </Flex>
-                          <Typography css={{ mt: "$1" }}>
+                          <Typography css={{ mt: "$1" }} contrast="hi">
+                            <Typography as="span" contrast="lo">
+                              License:
+                            </Typography>{" "}
                             {formatSchemaValue(getValues("license.type"))}
                           </Typography>
                         </Flex>
@@ -1289,7 +1298,7 @@ export const Upload = () => {
                       >
                         Choose payment method
                       </Button> */}
-                      {!form.formState.isSubmitSuccessful && (
+                      {form.getValues("uploadStatus") !== "success" && (
                         <Button
                           disabled={form.watch("uploadStatus") === "uploading"}
                           variant="solid"
@@ -1299,7 +1308,7 @@ export const Upload = () => {
                             : "Submit release"}
                         </Button>
                       )}
-                      {form.formState.isSubmitSuccessful && (
+                      {form.getValues("uploadStatus") === "success" && (
                         <Typography css={{ color: "$slate12" }}>
                           {form.getValues("tracklist").length > 1
                             ? "Album"
