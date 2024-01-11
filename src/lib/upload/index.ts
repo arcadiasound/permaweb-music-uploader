@@ -82,7 +82,12 @@ export const upload = async (
 
     if (isCollection) {
       /* if more than one track, upload collection */
-      collectionTx = await uploadCollection(data, trackTxs, address);
+      collectionTx = await uploadCollection(
+        data,
+        trackTxs,
+        address,
+        collectionCode
+      );
 
       if (!isDev()) {
         await new Promise((r) => setTimeout(r, 1000));
@@ -102,7 +107,12 @@ const uploadArtwork = async (
   artwork: UploadSchema["releaseArtwork"],
   uploadProvider: UploadProvider
 ) => {
-  const tags: TransactionTags = [];
+  const tags: TransactionTags = [
+    {
+      name: "Content-Type",
+      value: artwork.file.type,
+    },
+  ];
 
   let artworkTx: string;
 
@@ -110,17 +120,6 @@ const uploadArtwork = async (
     const res = await uploadFile(artwork.file, tags);
 
     artworkTx = res.id;
-    // try {
-    //   const res = await uploadFile(artwork.file, tags);
-
-    //   artworkTx = res.id;
-    // } catch (error: any) {
-    //   console.error(error);
-
-    //   if (error.includes('User rejected')) {
-    //     throw new Error('Upload cancelled.')
-    //   }
-    // }
   } else {
     const dataToUpload = await convertFileToUint8Array(artwork.file);
 

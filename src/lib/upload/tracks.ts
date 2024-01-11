@@ -39,7 +39,12 @@ export const uploadTracks = async (
       if (useArtworkTx) {
         trackArtworkId = artworkId;
       } else {
-        const imageTags: TransactionTags = [];
+        const imageTags: TransactionTags = [
+          {
+            name: "Content-Type",
+            value: track.metadata.artwork.file.type,
+          },
+        ];
         if (uploadProvider === "irys") {
           trackArtworkId = (
             await uploadFile(track.metadata.artwork.file, imageTags)
@@ -103,9 +108,8 @@ export const uploadTracks = async (
         });
       }
 
-      if (data.topics) {
-        const topics = data.topics.split(",");
-        console.log({ topics });
+      if (track.metadata.topics) {
+        const topics = track.metadata.topics.split(",");
         topics.forEach(
           (topic) =>
             (tags = tags.concat({
