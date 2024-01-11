@@ -136,7 +136,7 @@ export const HeaderDropdown = ({ walletAddress }: HeaderDropdownProps) => {
                 Edit Profile
               </Flex>
             </DropdownMenuItem>
-            <DropdownMenuSubRoot>
+            {/* <DropdownMenuSubRoot>
               <DropdownMenuSubTrigger>
                 <Flex align="center" gap="2">
                   <RxChevronLeft />
@@ -194,7 +194,7 @@ export const HeaderDropdown = ({ walletAddress }: HeaderDropdownProps) => {
                   </DropdownMenuRadioGroup>
                 </DropdownMenuSubContent>
               </DropdownMenuPortal>
-            </DropdownMenuSubRoot>
+            </DropdownMenuSubRoot> */}
 
             <DropdownMenuItem
               onSelect={() => {
