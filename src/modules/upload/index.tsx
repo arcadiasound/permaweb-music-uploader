@@ -105,7 +105,7 @@ export const Upload = () => {
   const [currentlyPlayingIndex, setCurrentlyPlayingIndex] = useState<
     null | number
   >(null);
-  const { walletAddress, connect, connecting } = useConnect();
+  const { walletAddress, connect, connecting, currentProvider } = useConnect();
   const irysOpts = useIrys();
   const audioRef = useRef<(HTMLAudioElement | null)[]>([]);
   const location = useLocation();
@@ -372,7 +372,7 @@ export const Upload = () => {
     console.log(data);
     form.setValue(`uploadStatus`, "uploading");
     try {
-      await upload(data, walletAddress, form, irysOpts);
+      await upload(data, walletAddress, form, irysOpts, currentProvider);
       form.setValue(`uploadStatus`, "success");
       toast.success("Tracks successfully uploaded!");
     } catch (error) {
@@ -1273,7 +1273,16 @@ export const Upload = () => {
               {currentTab === "review" && (
                 <>
                   {walletAddress ? (
-                    <Flex gap="3">
+                    <Flex gap="3" align="center">
+                      {/* {currentProvider === "othent" &&
+                        !formState.isSubmitting && (
+                          <Button
+                            type="button"
+                            onClick={handleShowUploadDialog}
+                          >
+                            Choose payment method
+                          </Button>
+                        )} */}
                       {formState.isSubmitting &&
                         form.watch("uploadStatus") === "uploading" && (
                           <Button
@@ -1281,23 +1290,11 @@ export const Upload = () => {
                               form.setValue("uploadStatus", "cancelled")
                             }
                             type="button"
-                            variant="transparent"
                             colorScheme="danger"
                           >
-                            Cancel Upload
+                            Cancel
                           </Button>
                         )}
-                      {/* <Button
-                        disabled={
-                          form.formState.isSubmitting
-                          // || form.formState.isSubmitSuccessful
-                        }
-                        type="button"
-                        // variant="solid"
-                        onClick={handleShowUploadDialog}
-                      >
-                        Choose payment method
-                      </Button> */}
                       {form.getValues("uploadStatus") !== "success" && (
                         <Button
                           disabled={form.watch("uploadStatus") === "uploading"}

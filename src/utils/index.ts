@@ -1,4 +1,6 @@
 import { UploadSchema } from "@/modules/upload/schema";
+import { CurrentProvider } from "@/types";
+import { Tag } from "arweave-graphql";
 import { BigNumber } from "bignumber.js";
 
 export const arrayBuffersEqual = (
@@ -189,3 +191,20 @@ export function convertFileToUint8Array(file: File): Promise<Uint8Array> {
     reader.readAsArrayBuffer(file);
   });
 }
+
+export const createAndSignDataItem = async (file: File, tags: Tag[]) => {
+  const dataToUpload = await convertFileToUint8Array(file);
+
+  let signed;
+
+  signed = await window.arweaveWallet.signDataItem({
+    data: dataToUpload,
+    tags,
+  });
+
+  // load the result into a DataItem instance
+  //@ts-ignore
+  const dataItem = new DataItem(signed);
+
+  return dataItem;
+};

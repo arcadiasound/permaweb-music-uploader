@@ -1,15 +1,15 @@
-import { IrysNode, IrysOpts, TransactionTags } from "@/types";
+import { CurrentProvider, IrysNode, IrysOpts, TransactionTags } from "@/types";
 import { WebIrys } from "@irys/sdk";
+import { othentSignIrysTx } from "./othent";
+import * as othentKMS from "@othent/kms";
 
 type GetIrys = Pick<IrysOpts, "init">;
 
 export const getIrys = async (irysOptions?: GetIrys) => {
   const irys = new WebIrys({
     token: "arweave",
-    // token: irysOptions?.init?.token || "arweave",
     wallet: { provider: irysOptions?.init?.provider || window.arweaveWallet },
     url: "https://up.arweave.net",
-    // url: `https://${irysOptions?.init?.node || "node2"}.irys.xyz`,
   });
 
   await irys.ready();
@@ -17,15 +17,29 @@ export const getIrys = async (irysOptions?: GetIrys) => {
   return irys;
 };
 
-export const uploadData = async (data: string, tags: TransactionTags) => {
-  const irys = await getIrys();
+export const uploadData = async (
+  data: string,
+  tags: TransactionTags,
+  currentProvider: CurrentProvider
+) => {
+  console.log({ othentKMS, currentProvider });
+  const irys = await getIrys({
+    init: { provider: currentProvider === "othent" ? othentKMS : undefined },
+  });
 
   const response = await irys.upload(data, { tags });
   return response;
 };
 
-export const uploadFile = async (data: File, tags: TransactionTags) => {
-  const irys = await getIrys();
+export const uploadFile = async (
+  data: File,
+  tags: TransactionTags,
+  currentProvider: CurrentProvider
+) => {
+  console.log({ othentKMS, currentProvider });
+  const irys = await getIrys({
+    init: { provider: currentProvider === "othent" ? othentKMS : undefined },
+  });
 
   const response = await irys.uploadFile(data, { tags });
   return response;
@@ -33,12 +47,18 @@ export const uploadFile = async (data: File, tags: TransactionTags) => {
 
 export const uploadChunks = async (
   data: ArrayBuffer,
-  tags: TransactionTags
+  tags: TransactionTags,
+  currentProvider: CurrentProvider
 ) => {
-  const irys = await getIrys();
+  console.log({ othentKMS, currentProvider });
+  const irys = await getIrys({
+    init: { provider: currentProvider === "othent" ? othentKMS : undefined },
+  });
 
   const transaction = irys.createTransaction(Buffer.from(data), { tags });
+
   await transaction.sign();
+
   let uploader = irys.uploader.chunkedUploader;
 
   const upload = uploader.uploadTransaction(transaction);

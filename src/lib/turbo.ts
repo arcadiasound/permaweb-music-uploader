@@ -1,38 +1,62 @@
-export const getTurboBalance = async () => {
+import { getOthentActivePublicKey, othentSignature } from "./othent";
+
+export const getTurboBalance = async (
+  provider: "arconnect" | "arweave.app" | "othent" | undefined
+) => {
   if (typeof window === "undefined") {
     return;
   }
 
-  try {
-    const wallet = window.arweaveWallet;
-    const publicKey = await window.arweaveWallet.getActivePublicKey();
-    const nonce = crypto.randomUUID();
-    const signature = await signNonceAndData(nonce, wallet);
+  const wallet = window.arweaveWallet;
+  const nonce = crypto.randomUUID();
+  const signature = await signNonceAndData(nonce, wallet, provider);
 
-    const res = await fetch("https://payment.ardrive.io/v1/balance", {
-      headers: {
-        "x-signature": signature,
-        "x-nonce": nonce,
-        "x-public-key": publicKey,
-      },
-    });
+  let publicKey;
 
+  if (provider === "othent") {
+    publicKey = await getOthentActivePublicKey();
+  } else {
+    publicKey = await window.arweaveWallet.getActivePublicKey();
+  }
+
+  const res = await fetch("https://payment.ardrive.io/v1/balance", {
+    headers: {
+      "x-signature": signature,
+      "x-nonce": nonce,
+      "x-public-key": publicKey,
+    },
+  });
+
+  if (res.ok) {
     const data: { winc: string } = await res.json();
     console.log({ data });
     return data;
-  } catch (error) {
-    throw error;
+  } else {
+    if (res.status === 404) {
+      return {
+        winc: "0",
+      };
+    } else {
+      throw new Error(res.statusText);
+    }
   }
 };
 
 const signNonceAndData = async (
   nonce: string,
-  wallet: typeof window.arweaveWallet
+  wallet: typeof window.arweaveWallet,
+  provider: "arconnect" | "arweave.app" | "othent" | undefined
 ) => {
-  const signature = await wallet.signature(new TextEncoder().encode(nonce), {
-    name: "RSA-PSS",
-    saltLength: 0,
-  });
+  let signature;
+
+  if (provider === "othent") {
+    signature = await othentSignature(new TextEncoder().encode(nonce));
+  } else {
+    signature = await wallet.signature(new TextEncoder().encode(nonce), {
+      name: "RSA-PSS",
+      saltLength: 0,
+    });
+  }
 
   const b64encodedSignature = await bufferToBase64(signature);
 

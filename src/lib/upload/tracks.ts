@@ -1,11 +1,17 @@
 import { Track, UploadSchema } from "@/modules/upload/schema";
-import { IrysOpts, TransactionTags, UploadProvider } from "@/types";
+import {
+  CurrentProvider,
+  IrysOpts,
+  TransactionTags,
+  UploadProvider,
+} from "@/types";
 import { UseFormReturn } from "react-hook-form";
 import { getIrys, uploadData, uploadFile } from "../irys";
 import { uploadFileTurbo } from "../turbo";
-import { convertFileToUint8Array, isDev } from "@/utils";
-import fileReaderStream from "filereader-stream";
+import { convertFileToUint8Array, createAndSignDataItem, isDev } from "@/utils";
 import { appConfig } from "@/appConfig";
+import fileReaderStream from "filereader-stream";
+import * as othentKMS from "@othent/kms";
 
 export const uploadTracks = async (
   data: UploadSchema,
@@ -14,6 +20,7 @@ export const uploadTracks = async (
   form: UseFormReturn<UploadSchema>,
   irysOpts: IrysOpts,
   uploadProvider: UploadProvider,
+  currentProvider: CurrentProvider,
   collectionCode?: string
 ): Promise<string[]> => {
   // empty array to fill with successfully uploaded tracks
@@ -46,23 +53,20 @@ export const uploadTracks = async (
           },
         ];
         if (uploadProvider === "irys") {
-          trackArtworkId = (
-            await uploadFile(track.metadata.artwork.file, imageTags)
-          ).id;
           form.setValue(`tracklist.${i}.upload.progress`, 20);
+
+          trackArtworkId = (
+            await uploadFile(
+              track.metadata.artwork.file,
+              imageTags,
+              currentProvider
+            )
+          ).id;
         } else {
-          const dataToUpload = await convertFileToUint8Array(
-            track.metadata.artwork.file
+          const dataItem = await createAndSignDataItem(
+            track.metadata.artwork.file,
+            imageTags
           );
-
-          const signed = await window.arweaveWallet.signDataItem({
-            data: dataToUpload,
-            tags: imageTags,
-          });
-
-          // load the result into a DataItem instance
-          //@ts-ignore
-          const dataItem = new DataItem(signed);
 
           trackArtworkId = await uploadFileTurbo(dataItem.getRaw());
         }
@@ -211,18 +215,29 @@ export const uploadTracks = async (
       let resultId: string;
 
       if (uploadProvider === "irys") {
-        resultId = await uploadTrackWithIrys(form, track, i, tags, irysOpts);
+        resultId = await uploadTrackWithIrys(
+          form,
+          track,
+          i,
+          tags,
+          irysOpts,
+          currentProvider
+        );
       } else {
         resultId = await uploadTrackWithTurbo(form, track, i, tags);
       }
 
       if (track.metadata.description.length > 300) {
-        await uploadData(track.metadata.description, [
-          {
-            name: "Description-For",
-            value: resultId,
-          },
-        ]).then(() => {
+        await uploadData(
+          track.metadata.description,
+          [
+            {
+              name: "Description-For",
+              value: resultId,
+            },
+          ],
+          currentProvider
+        ).then(() => {
           console.log(
             "successfully uploaded description for: ",
             track.metadata.title
@@ -251,13 +266,16 @@ const uploadTrackWithIrys = async (
   track: Track,
   i: number,
   tags: TransactionTags,
-  irysOpts: IrysOpts
+  irysOpts: IrysOpts,
+  currentProvider: CurrentProvider
 ) => {
   let totalChunks = 0;
 
   console.log(tags);
   // set user-preferred node
-  const irys = await getIrys({ init: { node: irysOpts.init?.node } });
+  const irys = await getIrys({
+    init: { provider: currentProvider === "othent" ? othentKMS : undefined },
+  });
 
   const uploader = irys.uploader.chunkedUploader;
 
@@ -295,9 +313,9 @@ const uploadTrackWithIrys = async (
     console.error(`Error uploading chunk number ${e.id} - ${e.res.statusText}`);
   });
 
-  // uploader.on("done", (res) => {
-  //   form.setValue(`tracklist.${i}.upload.progress`, 100);
-  // });
+  uploader.on("done", (res) => {
+    form.setValue(`tracklist.${i}.upload.progress`, 100);
+  });
 
   const result = await uploader.uploadData(dataStream, {
     tags,

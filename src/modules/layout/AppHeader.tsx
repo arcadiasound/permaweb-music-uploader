@@ -4,6 +4,7 @@ import { HeaderDropdown } from "./HeaderDropdown";
 import { ConnectWallet } from "../wallet/ConnectWallet";
 import { useConnect } from "@/hooks/useConnect";
 import { CheckBalances } from "../wallet/CheckBalances";
+import { LoadingSpinner } from "@/ui/Loader";
 
 export const AppHeader = () => {
   const { walletAddress, connecting } = useConnect();
@@ -45,19 +46,23 @@ export const AppHeader = () => {
               },
             }}
             providers={{
+              othent: true,
               arconnect: true,
               arweaveApp: false,
             }}
             appName="Permaweb Music Uploader"
           >
             <Button
+              disabled={connecting}
               css={{
                 fontWeight: 400,
                 fontSize: "$3",
+                gap: "$1",
               }}
               variant="transparent"
             >
-              {connecting ? "connecting..." : "connect wallet"}
+              {connecting && <LoadingSpinner />}
+              {connecting ? "connecting..." : "connect / sign in"}
             </Button>
           </ConnectWallet>
         )}

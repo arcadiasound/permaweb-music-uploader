@@ -5,6 +5,7 @@ import { useConnect } from "../../hooks/useConnect";
 import { CSS } from "@/stitches.config";
 import { Button, ButtonProps } from "@/ui/Button";
 import { IconButton } from "@/ui/IconButton";
+import { LoadingSpinner } from "@/ui/Loader";
 
 export interface ConnectWalletProps {
   appName?: string;
@@ -14,6 +15,7 @@ export interface ConnectWalletProps {
   providers?: {
     arweaveApp: boolean;
     arconnect: boolean;
+    othent: boolean;
   };
   options?: {
     connectButtonLabel?: string;
@@ -35,8 +37,6 @@ export const ConnectWallet = (props: ConnectWalletProps) => {
   React.useEffect(() => {
     if (showConnectDialog) {
       setState((prevValues) => ({ ...prevValues, connecting: true }));
-    } else {
-      setState((prevValues) => ({ ...prevValues, connecting: false }));
     }
   }, [showConnectDialog]);
 
@@ -133,6 +133,7 @@ export const ConnectWallet = (props: ConnectWalletProps) => {
               }}
               disabled={connecting}
             >
+              {connecting && <LoadingSpinner />}
               {connecting ? "Connecting..." : label}
             </Button>
             //   )}

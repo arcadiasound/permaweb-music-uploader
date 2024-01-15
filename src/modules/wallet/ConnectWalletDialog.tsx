@@ -17,13 +17,19 @@ import {
 import { IconButton } from "@/ui/IconButton";
 import { Typography } from "@/ui/Typography";
 import { Flex } from "@/ui/Flex";
+import { Image } from "@/ui/Image";
+import { Box } from "@/ui/Box";
 
 interface WalletServiceProps {
-  name: "Arweave.app" | "Arconnect";
+  name: "Arweave.app" | "Arconnect" | "Othent";
   logo: any;
 }
 
 const walletItems: WalletServiceProps[] = [
+  {
+    name: "Othent",
+    logo: "https://othent.io/logo.svg",
+  },
   {
     name: "Arconnect",
     logo: "https://arweave.net/dKJd2vi7RXG3kxaotGDLD6VZjLn58AD4xan5L9cN9es",
@@ -42,6 +48,57 @@ interface WalletItemProps {
 
 const WalletItem = React.forwardRef<HTMLButtonElement, WalletItemProps>(
   ({ name, logo, connect }, ref) => {
+    let bg;
+
+    switch (name) {
+      case "Arconnect":
+        bg = "$violet9";
+        break;
+      case "Arweave.app":
+        bg = "$slate12";
+        break;
+      case "Othent":
+        bg = "$slate12";
+        break;
+      default:
+        bg = "$slate2";
+        break;
+    }
+
+    let bgHover;
+
+    switch (name) {
+      case "Arconnect":
+        bgHover = "$violet10";
+        break;
+      case "Arweave.app":
+        bgHover = "$slateSolidHover";
+        break;
+      case "Othent":
+        bgHover = "$slateSolidHover";
+        break;
+      default:
+        bgHover = "$slate4";
+        break;
+    }
+
+    let color;
+
+    switch (name) {
+      case "Arconnect":
+        color = "#fff";
+        break;
+      case "Arweave.app":
+        color = "$slate1";
+        break;
+      case "Othent":
+        color = "#2375ef";
+        break;
+      default:
+        color = "$slate11";
+        break;
+    }
+
     return (
       <Button
         onClick={() => connect(name.toLowerCase())}
@@ -57,28 +114,40 @@ const WalletItem = React.forwardRef<HTMLButtonElement, WalletItemProps>(
             size: "$7",
             color: name === "Arconnect" ? "#fff" : "$slate1",
           },
-          color: name === "Arconnect" ? "#fff" : "$slate1",
-          backgroundColor:
-            name === "Arconnect"
-              ? "$violet9"
-              : name === "Arweave.app"
-              ? "$slate12"
-              : "$slate2",
+          color: color,
+          backgroundColor: bg,
 
           "&:hover": {
-            backgroundColor:
-              name === "Arconnect"
-                ? "$violet10"
-                : name === "Arweave.app"
-                ? "$slate11"
-                : "$slate4",
+            backgroundColor: bgHover,
           },
         }}
         size="3"
         ref={ref}
       >
-        {name === "Arweave.app" ? <ArweaveLogo /> : <ArconnectLogo />}
-        Connect with {name}
+        {name === "Othent" ? "Sign in" : "Connect"} with {name}
+        {name === "Arweave.app" && <ArweaveLogo />}
+        {name === "Arconnect" && <ArconnectLogo width={20} height={20} />}
+        {name === "Othent" && (
+          <Flex
+            align="center"
+            justify="end"
+            css={{
+              backgroundColor: "#2375ef",
+              width: 48,
+              height: 24,
+              br: "$pill",
+            }}
+          >
+            <Box
+              css={{
+                backgroundColor: "white",
+                boxSize: 22,
+                mr: 1,
+                br: "$pill",
+              }}
+            />
+          </Flex>
+        )}
       </Button>
     );
   }
@@ -91,6 +160,7 @@ interface ConnectWalletDialogProps {
   profile: PermaProfile | undefined;
   appName?: string;
   providers?: {
+    othent: boolean;
     arweaveApp: boolean;
     arconnect: boolean;
   };
@@ -109,14 +179,14 @@ export const ConnectWalletDialog = (props: ConnectWalletDialogProps) => {
     permissions,
     profile,
     appName,
-    providers = { arconnect: true, arweaveApp: true },
+    providers = { arconnect: true, arweaveApp: true, othent: true },
   } = props;
 
   const handleConnect = (name: string) => {
     props.onClose();
     return connect({
       appName: appName || "this app",
-      walletProvider: name as "arweave.app" | "arconnect",
+      walletProvider: name as "arweave.app" | "arconnect" | "othent",
       permissions,
     });
   };
@@ -128,13 +198,16 @@ export const ConnectWalletDialog = (props: ConnectWalletDialogProps) => {
     if (name === "Arweave.app") {
       return providers?.arweaveApp ? "Arweave.app" : "";
     }
+    if (name === "Othent") {
+      return providers?.othent ? "Othent" : "";
+    }
   };
 
   return (
     <Dialog
       open={props.open}
       onOpenChange={() => {
-        setState((prevValues) => ({ ...prevValues }));
+        setState((prevValues) => ({ ...prevValues, connecting: false }));
         props.onClose();
       }}
     >
@@ -169,9 +242,9 @@ export const ConnectWalletDialog = (props: ConnectWalletDialogProps) => {
           <ConnectIcon width={150} height={150} />
         </Flex>
         <DialogDescription asChild>
-          <Typography css={{ textAlign: "center" }} size="4">
-            Choose a wallet to connect to <br />
-            <Typography size="4" as="span" weight="6" contrast="hi">
+          <Typography css={{ textAlign: "center" }}>
+            Choose a method to login to <br />
+            <Typography as="span" weight="6" contrast="hi">
               {appName || "this app"}
             </Typography>
             :
@@ -193,13 +266,18 @@ export const ConnectWalletDialog = (props: ConnectWalletDialogProps) => {
               (walletItem) => walletItem.name === providerName(walletItem.name)
             )
             .map((wallet) => (
-              <DialogClose key={wallet.name} asChild>
-                <WalletItem
-                  connect={handleConnect}
-                  name={wallet.name}
-                  logo={wallet.logo}
-                />
-              </DialogClose>
+              <>
+                <DialogClose key={wallet.name} asChild>
+                  <WalletItem
+                    connect={handleConnect}
+                    name={wallet.name}
+                    logo={wallet.logo}
+                  />
+                </DialogClose>
+                {wallet.name === "Othent" && (
+                  <Typography css={{ textAlign: "center" }}>or</Typography>
+                )}
+              </>
             ))}
           {/* <Checkbox
               defaultChecked={reconnect}

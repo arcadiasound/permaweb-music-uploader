@@ -8,6 +8,12 @@ import {
 } from "../types";
 import { account } from "../lib/account";
 import { PermissionType } from "arconnect";
+import {
+  getOthentActivePublicKey,
+  getOthentAddress,
+  othentConnect,
+  othentDisconnect,
+} from "@/lib/othent";
 
 const ConnectContext = React.createContext<{
   walletAddress?: string;
@@ -15,7 +21,7 @@ const ConnectContext = React.createContext<{
   profile?: PermaProfile;
   connecting?: boolean;
   reconnect?: boolean;
-  currentProvider?: "arweave.app" | "arconnect";
+  currentProvider?: "arweave.app" | "arconnect" | "othent";
   vouched?: Vouched;
   config?: ArweaveConfig;
   connect: (props: ConnectProps) => void;
@@ -29,7 +35,7 @@ const ConnectContext = React.createContext<{
     React.SetStateAction<{
       connecting?: boolean;
       reconnect?: boolean;
-      currentProvider?: "arweave.app" | "arconnect";
+      currentProvider?: "arweave.app" | "arconnect" | "othent";
       walletAddress?: string | undefined;
       addresses?: string[] | [];
       profile?: PermaProfile | undefined;
@@ -63,7 +69,7 @@ const ConnectProvider = ({
   const [state, setState] = useState<{
     connecting?: boolean;
     reconnect?: boolean;
-    currentProvider?: "arweave.app" | "arconnect";
+    currentProvider?: "arweave.app" | "arconnect" | "othent";
     walletAddress?: string;
     addresses?: string[];
     profile?: PermaProfile;
@@ -90,7 +96,10 @@ const ConnectProvider = ({
       setState((prevValues) => ({
         ...prevValues,
         reconnect: true,
-        currentProvider: shouldReconnect as "arweave.app" | "arconnect",
+        currentProvider: shouldReconnect as
+          | "arweave.app"
+          | "arconnect"
+          | "othent",
         connecting: true,
       }));
 
@@ -171,9 +180,30 @@ const ConnectProvider = ({
       if (props.walletProvider === "arconnect") {
         await connectWithArconnect(props.permissions);
       }
+      if (props.walletProvider === "othent") {
+        await connectWithOthent();
+      }
     } catch (e) {
       console.error(e);
       setState((prevValues) => ({ ...prevValues, connecting: false }));
+    }
+  };
+
+  const connectWithOthent = async () => {
+    setState((prevValues) => ({
+      ...prevValues,
+      currentProvider: "othent",
+    }));
+
+    try {
+      const userDetails = await othentConnect();
+      console.log(userDetails);
+
+      const address = getOthentAddress(userDetails);
+
+      await completeConnection(address, []);
+    } catch (error) {
+      throw new Error(error as any);
     }
   };
 
@@ -309,14 +339,24 @@ const ConnectProvider = ({
     }
   };
 
-  const disconnect = () => {
-    window.arweaveWallet.disconnect().then(() => {
-      setState((prevValues) => ({
-        walletAddress: "",
-        reconnect: prevValues.reconnect,
-        currentProvider: prevValues.currentProvider,
-      }));
-    });
+  const disconnect = async () => {
+    if (state.currentProvider === "othent") {
+      await othentDisconnect().then(() => {
+        setState((prevValues) => ({
+          walletAddress: "",
+          reconnect: prevValues.reconnect,
+          currentProvider: prevValues.currentProvider,
+        }));
+      });
+    } else {
+      window.arweaveWallet.disconnect().then(() => {
+        setState((prevValues) => ({
+          walletAddress: "",
+          reconnect: prevValues.reconnect,
+          currentProvider: prevValues.currentProvider,
+        }));
+      });
+    }
   };
 
   return (

@@ -1,12 +1,17 @@
 import { Track, UploadSchema } from "@/modules/upload/schema";
 import { getIrys, uploadData, uploadFile } from "../irys";
-import { IrysOpts, TransactionTags, UploadProvider } from "@/types";
+import {
+  CurrentProvider,
+  IrysOpts,
+  TransactionTags,
+  UploadProvider,
+} from "@/types";
 import { appConfig } from "@/appConfig";
 import { warp } from "../arweave";
 import { UseFormReturn } from "react-hook-form";
 import { uploadFileTurbo } from "../turbo";
 import { DataItem } from "arbundles";
-import { convertFileToUint8Array, isDev } from "@/utils";
+import { convertFileToUint8Array, createAndSignDataItem, isDev } from "@/utils";
 import { uploadTracks } from "./tracks";
 import { uploadCollection } from "./collection";
 
@@ -14,7 +19,8 @@ export const upload = async (
   data: UploadSchema,
   address: string | undefined,
   form: UseFormReturn<UploadSchema>,
-  irysOpts: IrysOpts
+  irysOpts: IrysOpts,
+  currentProvider: CurrentProvider
 ) => {
   try {
     if (!address) {
@@ -37,7 +43,11 @@ export const upload = async (
 
     /* upload release artwork */
     /* update to prefer tx once we add option in form */
-    artworkTx = await uploadArtwork(data.releaseArtwork, data.uploadProvider);
+    artworkTx = await uploadArtwork(
+      data.releaseArtwork,
+      data.uploadProvider,
+      currentProvider
+    );
 
     /* upload tracks individually */
     const trackTxs = await uploadTracks(
@@ -47,6 +57,7 @@ export const upload = async (
       form,
       irysOpts,
       data.uploadProvider,
+      currentProvider,
       collectionCode
     );
 
@@ -86,7 +97,8 @@ export const upload = async (
         data,
         trackTxs,
         address,
-        collectionCode
+        collectionCode,
+        currentProvider
       );
 
       if (!isDev()) {
@@ -105,7 +117,8 @@ export const upload = async (
 
 const uploadArtwork = async (
   artwork: UploadSchema["releaseArtwork"],
-  uploadProvider: UploadProvider
+  uploadProvider: UploadProvider,
+  currentProvider: CurrentProvider
 ) => {
   const tags: TransactionTags = [
     {
@@ -117,20 +130,11 @@ const uploadArtwork = async (
   let artworkTx: string;
 
   if (uploadProvider === "irys") {
-    const res = await uploadFile(artwork.file, tags);
+    const res = await uploadFile(artwork.file, tags, currentProvider);
 
     artworkTx = res.id;
   } else {
-    const dataToUpload = await convertFileToUint8Array(artwork.file);
-
-    const signed = await window.arweaveWallet.signDataItem({
-      data: dataToUpload,
-      tags,
-    });
-
-    // load the result into a DataItem instance
-    //@ts-ignore
-    const dataItem = new DataItem(signed);
+    const dataItem = await createAndSignDataItem(artwork.file, tags);
 
     artworkTx = await uploadFileTurbo(dataItem.getRaw());
   }

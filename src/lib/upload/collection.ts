@@ -1,5 +1,5 @@
 import { UploadSchema } from "@/modules/upload/schema";
-import { TransactionTags } from "@/types";
+import { CurrentProvider, TransactionTags } from "@/types";
 import { uploadData } from "../irys";
 import { uploadFileTurbo } from "../turbo";
 import { isDev } from "@/utils";
@@ -8,7 +8,8 @@ export const uploadCollection = async (
   data: UploadSchema,
   trackTxs: string[],
   address: string,
-  collectionCode: string
+  collectionCode: string,
+  currentProvider: CurrentProvider
 ): Promise<string> => {
   try {
     let collectionId: string = "";
@@ -108,18 +109,27 @@ export const uploadCollection = async (
     });
 
     if (data.uploadProvider === "irys") {
-      const collectionTx = await uploadData(collectionData, tags);
+      const collectionTx = await uploadData(
+        collectionData,
+        tags,
+        currentProvider
+      );
+
       console.log(collectionTx);
 
       collectionId = collectionTx.id;
 
       if (data.description.length > 300) {
-        await uploadData(data.description, [
-          {
-            name: "Description-For",
-            value: collectionId,
-          },
-        ]).then(() => {
+        await uploadData(
+          data.description,
+          [
+            {
+              name: "Description-For",
+              value: collectionId,
+            },
+          ],
+          currentProvider
+        ).then(() => {
           console.log("successfully uploaded release description");
         });
       }
