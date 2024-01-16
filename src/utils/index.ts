@@ -1,4 +1,6 @@
 import { UploadSchema } from "@/modules/upload/schema";
+import { CurrentProvider } from "@/types";
+import { Tag } from "arweave-graphql";
 import { BigNumber } from "bignumber.js";
 
 export const arrayBuffersEqual = (
@@ -155,4 +157,54 @@ export const floorToFixed = (number: number | string, decimals: number) => {
     Math.floor(typeof number === "number" ? number : Number(number) * factor) /
     factor
   );
+};
+
+export const isDev = () => {
+  if (typeof window === "undefined") return;
+
+  if (window.location.hostname === "localhost") {
+    return true;
+  } else {
+    return false;
+  }
+};
+
+export function convertFileToUint8Array(file: File): Promise<Uint8Array> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      // Ensure that reader.result is an ArrayBuffer
+      if (reader.result instanceof ArrayBuffer) {
+        const arrayBuffer = reader.result;
+        const uint8Array = new Uint8Array(arrayBuffer);
+        resolve(uint8Array);
+      } else {
+        reject(new Error("File read did not result in an ArrayBuffer"));
+      }
+    };
+
+    reader.onerror = () => {
+      reject(new Error("Error reading file"));
+    };
+
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+export const createAndSignDataItem = async (file: File, tags: Tag[]) => {
+  const dataToUpload = await convertFileToUint8Array(file);
+
+  let signed;
+
+  signed = await window.arweaveWallet.signDataItem({
+    data: dataToUpload,
+    tags,
+  });
+
+  // load the result into a DataItem instance
+  //@ts-ignore
+  const dataItem = new DataItem(signed);
+
+  return dataItem;
 };

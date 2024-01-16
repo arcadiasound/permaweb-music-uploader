@@ -35,6 +35,7 @@ import {
   SelectValue,
   SelectViewport,
 } from "@/ui/Select";
+import { LoadingSpinner } from "@/ui/Loader";
 
 const StyledRadioItem = styled(RadioItem, {
   variants: {
@@ -356,7 +357,10 @@ export const TurboDialog = ({
                   type="submit"
                   variant="solid"
                 >
-                  Go to checkout
+                  {checkoutMutation.isLoading && <LoadingSpinner />}
+                  {checkoutMutation.isLoading
+                    ? "Generating checkout link"
+                    : "Go to checkout"}{" "}
                   <BsCart2 />
                 </Button>
               )}

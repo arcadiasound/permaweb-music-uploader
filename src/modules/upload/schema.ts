@@ -39,7 +39,7 @@ const trackMetadataSchema = z.object({
     .default(""),
   description: z
     .string()
-    .max(1000, "Description must contain less than 300 characters")
+    .max(3000, "Description must contain less than 3000 characters")
     .optional()
     .default(""),
   genre: z.enum(genres).default("none"),
@@ -72,7 +72,7 @@ export const uploadSchema = z.object({
     .default(""),
   description: z
     .string()
-    .max(1000, "Description must contain less than 300 characters")
+    .max(3000, "Description must contain less than 3000 characters")
     .optional()
     .default(""),
   genre: z.enum(genres).default("none"),
@@ -84,4 +84,7 @@ export const uploadSchema = z.object({
   license: licenseSchema,
   tokenQuantity: z.coerce.number().min(1).max(100),
   uploadProvider: z.enum(["irys", "turbo"] as const),
+  uploadStatus: z
+    .enum(["idle", "uploading", "success", "failed", "paused", "cancelled"])
+    .default("idle"),
 });

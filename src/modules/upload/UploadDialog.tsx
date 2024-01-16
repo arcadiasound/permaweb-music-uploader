@@ -59,7 +59,7 @@ interface UploadDialogProps {
 }
 
 export const UploadDialog = ({ open, onClose, data }: UploadDialogProps) => {
-  const { walletAddress } = useConnect();
+  const { walletAddress, currentProvider } = useConnect();
   // const [uploadProvider, setUploadProvider] = useState<UploadProvider>("irys");
   const { balance } = useTurbo();
   const { getValues, setValue, watch, control } =
@@ -122,7 +122,7 @@ export const UploadDialog = ({ open, onClose, data }: UploadDialogProps) => {
       await window.arweaveWallet
         .connect(["SIGNATURE"])
         .then(() => {
-          turboBalance.mutate();
+          turboBalance.mutate(currentProvider);
         })
         .catch((error) => {
           console.error(error);
@@ -131,7 +131,7 @@ export const UploadDialog = ({ open, onClose, data }: UploadDialogProps) => {
           }
         });
     } else {
-      turboBalance.mutate();
+      turboBalance.mutate(currentProvider);
     }
   };
 
@@ -139,7 +139,7 @@ export const UploadDialog = ({ open, onClose, data }: UploadDialogProps) => {
     turboBalance.error instanceof Error &&
     turboBalance.error.message.includes("User");
 
-  const turbo = balance || turboBalance.data?.winc;
+  const turbo = balance?.winc || turboBalance.data?.winc;
 
   const hasEnoughTurbo = (
     balance: string | undefined,
@@ -311,7 +311,7 @@ export const UploadDialog = ({ open, onClose, data }: UploadDialogProps) => {
               <>
                 {balance ? (
                   <Typography size="5" contrast="hi">
-                    {formatCredits(balance, 12)}
+                    {formatCredits(balance?.winc, 12)}
                   </Typography>
                 ) : (
                   <>
@@ -319,7 +319,7 @@ export const UploadDialog = ({ open, onClose, data }: UploadDialogProps) => {
                       <Button
                         size="1"
                         css={{ alignSelf: "start" }}
-                        onClick={() => turboBalance.mutate()}
+                        onClick={() => turboBalance.mutate(currentProvider)}
                         variant="solid"
                       >
                         Check credits

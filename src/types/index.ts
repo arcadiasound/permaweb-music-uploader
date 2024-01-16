@@ -2,6 +2,12 @@ import { PermissionType } from "arconnect";
 import { AppInfo } from "arweave-wallet-connector";
 import { ReactiveConnector } from "../../node_modules/.pnpm/arweave-wallet-connector@1.0.2/node_modules/arweave-wallet-connector/lib/browser/Reactive";
 
+export type CurrentProvider =
+  | "arweave.app"
+  | "arconnect"
+  | "othent"
+  | undefined;
+
 export type UploadProvider = "irys" | "turbo";
 
 export type TransactionTag = {
@@ -36,7 +42,7 @@ export type Env = {
 };
 
 export interface ConnectProps {
-  walletProvider: "arweave.app" | "arconnect";
+  walletProvider: "arweave.app" | "arconnect" | "othent";
   appName: string;
   arweaveWalletProps?: ArweaveWalletProps | undefined;
   permissions?: PermissionType[];

@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from "react";
 
 const TurboContext = React.createContext<{
-  balance?: string;
+  balance?: {
+    winc: string;
+  };
   setState: React.Dispatch<
     React.SetStateAction<{
-      balance?: string;
+      balance?: {
+        winc: string;
+      };
     }>
   >;
 }>({
@@ -17,7 +21,9 @@ interface TurboProviderProps {
 
 const TurboProvider = ({ children }: TurboProviderProps) => {
   const [state, setState] = useState<{
-    balance?: string;
+    balance?: {
+      winc: string;
+    };
   }>({});
 
   useEffect(() => {

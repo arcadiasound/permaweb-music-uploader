@@ -35,6 +35,7 @@ import { FundNodeDialog } from "../wallet/FundNodeDialog";
 import { useQuery } from "@tanstack/react-query";
 import { getAccount } from "@/lib/account/api";
 import { useIrys } from "@/hooks/useIrys";
+import { othentDisconnect } from "@/lib/othent";
 
 const StyledLink = styled(Link);
 
@@ -50,7 +51,7 @@ interface DialogOpenProps {
 }
 
 export const HeaderDropdown = ({ walletAddress }: HeaderDropdownProps) => {
-  const { setState } = useConnect();
+  const { disconnect } = useConnect();
   const { init: irysInitOpts, setState: setIrys } = useIrys();
   const [currentGateway, setCurrentGateway] = useState(
     userPreferredGateway || appConfig.defaultGateway
@@ -63,6 +64,7 @@ export const HeaderDropdown = ({ walletAddress }: HeaderDropdownProps) => {
 
   const { data: profile, isError } = useQuery({
     queryKey: [`profile-${walletAddress}`],
+    refetchOnWindowFocus: false,
     queryFn: () => {
       if (!walletAddress) {
         throw new Error("No profile has been found");
@@ -82,6 +84,10 @@ export const HeaderDropdown = ({ walletAddress }: HeaderDropdownProps) => {
       setDropdownOpen(false);
     }
   }, [dialogOpen.open]);
+
+  const handleDisconnect = async () => {
+    await disconnect();
+  };
 
   const name =
     profile && profile.handle
@@ -135,7 +141,7 @@ export const HeaderDropdown = ({ walletAddress }: HeaderDropdownProps) => {
                 Edit Profile
               </Flex>
             </DropdownMenuItem>
-            <DropdownMenuSubRoot>
+            {/* <DropdownMenuSubRoot>
               <DropdownMenuSubTrigger>
                 <Flex align="center" gap="2">
                   <RxChevronLeft />
@@ -193,18 +199,12 @@ export const HeaderDropdown = ({ walletAddress }: HeaderDropdownProps) => {
                   </DropdownMenuRadioGroup>
                 </DropdownMenuSubContent>
               </DropdownMenuPortal>
-            </DropdownMenuSubRoot>
+            </DropdownMenuSubRoot> */}
 
-            <DropdownMenuItem
-              onSelect={() => {
-                window.arweaveWallet.disconnect().then(() => {
-                  setState({ walletAddress: "" });
-                });
-              }}
-            >
+            <DropdownMenuItem onSelect={handleDisconnect}>
               <Flex align="center" gap="2">
                 <BsPlug />
-                Disconnect
+                Logout
               </Flex>
             </DropdownMenuItem>
           </DropdownMenuContent>
